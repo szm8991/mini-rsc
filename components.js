@@ -1,30 +1,38 @@
-export function BlogIndexPage({ postSlugs, postContents }) {
+import { readFile, readdir } from "fs/promises";
+export async function Post({ slug }) {
+  let content;
+  try {
+    content = await readFile('./posts/' + slug + '.txt', 'utf8');
+  } catch (err) {
+    throwNotFound(err);
+  }
+  return (
+    <section>
+      <h2>
+        <a href={'/' + slug}>{slug}</a>
+      </h2>
+      <article>{content}</article>
+    </section>
+  );
+}
+
+export async function BlogIndexPage() {
+  const postFiles = await readdir('./posts');
+  const postSlugs = postFiles.map(file => file.slice(0, file.lastIndexOf('.')));
   return (
     <section>
       <h1>Welcome to my blog</h1>
       <div>
-        {postSlugs.map((postSlug, index) => (
-          <section key={postSlug}>
-            <h2>
-              <a href={'/' + postSlug}>{postSlug}</a>
-            </h2>
-            <article>{postContents[index]}</article>
-          </section>
+        {postSlugs.map(slug => (
+          <Post key={slug} slug={slug} />
         ))}
       </div>
     </section>
   );
 }
 
-export function BlogPostPage({ postSlug, postContent }) {
-  return (
-    <section>
-      <h2>
-        <a href={'/' + postSlug}>{postSlug}</a>
-      </h2>
-      <article>{postContent}</article>
-    </section>
-  );
+export function BlogPostPage({ postSlug }) {
+  return <Post slug={postSlug} />;
 }
 
 export function BlogLayout({ children }) {

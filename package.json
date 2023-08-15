@@ -4,7 +4,9 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "start": "node --experimental-loader ./node-jsx-loader.js ./server.js"
+    "start": "concurrently \"npm run start:ssr\" \"npm run start:rsc\"",
+    "start:rsc": "node --experimental-loader ./node-jsx-loader.js ./server/rsc.js",
+    "start:ssr": "node --experimental-loader ./node-jsx-loader.js ./server/ssr.js"
   },
   "keywords": [],
   "author": "",
@@ -12,6 +14,7 @@
   "dependencies": {
     "@babel/core": "^7.22.10",
     "@babel/plugin-transform-react-jsx": "^7.22.5",
+    "concurrently": "^8.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "sanitize-filename": "^1.6.3"

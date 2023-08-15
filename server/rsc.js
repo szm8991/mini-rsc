@@ -1,8 +1,8 @@
 import { readFile } from 'fs/promises';
 import { createServer } from 'node:http';
 import sanitizeFilename from 'sanitize-filename';
-import { renderJSXToClientJSX, renderJSXToHTML } from './compiler.js';
-import { BlogIndexPage, BlogLayout, BlogPostPage } from './components.js';
+import { renderJSXToClientJSX, renderJSXToHTML } from '../compiler.js';
+import { BlogIndexPage, BlogLayout, BlogPostPage } from '../components.js';
 function Router({ url }) {
   let page;
   if (url.pathname === '/') {
@@ -63,18 +63,10 @@ createServer(async (req, res) => {
   try {
     if (req.url === '/favicon.ico') return;
     const url = new URL(req.url, `http://${req.headers.host}`);
-    if (url.pathname === '/client.js') {
-      await sendScript(res, './client.js');
-    } else if (url.searchParams.has('jsx')) {
-      url.searchParams.delete('jsx');
-      console.log('send jsx');
-      await sendJSX(res, <Router url={url} />);
-    } else {
-      await sendHTML(res, <Router url={url} />);
-    }
+    await sendJSX(res, <Router url={url} />);
   } catch (err) {
     console.error(err);
     res.statusCode = err.statusCode ?? 500;
     res.end();
   }
-}).listen(8080);
+}).listen(8081);

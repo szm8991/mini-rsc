@@ -1,0 +1,17 @@
+{
+  "name": "mini-rsc",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "scripts": {
+    "start": "ts-node --esm ./server.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/node": "^20.5.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.1.6"
+  }
+}

@@ -15,10 +15,10 @@ function Router({ url }) {
 }
 
 function stringifyJSX(key, value) {
-  if (value === Symbol.for("react.element")) {
-    return "$RE";
-  } else if (typeof value === "string" && value.startsWith("$")) {
-    return "$" + value;
+  if (value === Symbol.for('react.element')) {
+    return '$RE';
+  } else if (typeof value === 'string' && value.startsWith('$')) {
+    return '$' + value;
   } else {
     return value;
   }
@@ -27,7 +27,7 @@ function stringifyJSX(key, value) {
 async function sendJSX(res, jsx) {
   const clientJSX = await renderJSXToClientJSX(jsx);
   const clientJSXString = JSON.stringify(clientJSX, stringifyJSX);
-  res.setHeader("Content-Type", "application/json");
+  res.setHeader('Content-Type', 'application/json');
   res.end(clientJSXString);
 }
 
@@ -39,6 +39,11 @@ async function sendScript(res, filename) {
 
 async function sendHTML(res, jsx) {
   let html = await renderJSXToHTML(jsx);
+  const clientJSX = await renderJSXToClientJSX(jsx);
+  const clientJSXString = JSON.stringify(clientJSX, stringifyJSX);
+  html += `<script>window.__INITIAL_CLIENT_JSX_STRING__ = `;
+  html += JSON.stringify(clientJSXString).replace(/</g, '\\u003c');
+  html += `</script>`;
   html += `
     <script type="importmap">
       {
@@ -50,7 +55,7 @@ async function sendHTML(res, jsx) {
     </script>
     <script type="module" src="/client.js"></script>
   `;
-  res.setHeader("Content-Type", "text/html");
+  res.setHeader('Content-Type', 'text/html');
   res.end(html);
 }
 
@@ -62,7 +67,7 @@ createServer(async (req, res) => {
       await sendScript(res, './client.js');
     } else if (url.searchParams.has('jsx')) {
       url.searchParams.delete('jsx');
-      console.log('send jsx')
+      console.log('send jsx');
       await sendJSX(res, <Router url={url} />);
     } else {
       await sendHTML(res, <Router url={url} />);

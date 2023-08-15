@@ -13,6 +13,7 @@
     "@babel/core": "^7.22.10",
     "@babel/plugin-transform-react-jsx": "^7.22.5",
     "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "sanitize-filename": "^1.6.3"
   },
   "devDependencies": {

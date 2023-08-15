@@ -1,7 +1,7 @@
-import { readFile } from "fs/promises";
+import { readFile } from 'fs/promises';
 import { createServer } from 'node:http';
 import sanitizeFilename from 'sanitize-filename';
-import { renderJSXToHTML } from './compiler.js';
+import { renderJSXToClientJSX, renderJSXToHTML } from './compiler.js';
 import { BlogIndexPage, BlogLayout, BlogPostPage } from './components.js';
 function Router({ url }) {
   let page;
@@ -14,15 +14,42 @@ function Router({ url }) {
   return <BlogLayout>{page}</BlogLayout>;
 }
 
+function stringifyJSX(key, value) {
+  if (value === Symbol.for("react.element")) {
+    return "$RE";
+  } else if (typeof value === "string" && value.startsWith("$")) {
+    return "$" + value;
+  } else {
+    return value;
+  }
+}
+
+async function sendJSX(res, jsx) {
+  const clientJSX = await renderJSXToClientJSX(jsx);
+  const clientJSXString = JSON.stringify(clientJSX, stringifyJSX);
+  res.setHeader("Content-Type", "application/json");
+  res.end(clientJSXString);
+}
+
 async function sendScript(res, filename) {
-  const content = await readFile(filename, "utf8");
-  res.setHeader("Content-Type", "text/javascript");
+  const content = await readFile(filename, 'utf8');
+  res.setHeader('Content-Type', 'text/javascript');
   res.end(content);
 }
 
 async function sendHTML(res, jsx) {
   let html = await renderJSXToHTML(jsx);
-  html += `<script type="module" src="/client.js"></script>`;
+  html += `
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "https://esm.sh/react@canary",
+          "react-dom/client": "https://esm.sh/react-dom@canary/client"
+        }
+      }
+    </script>
+    <script type="module" src="/client.js"></script>
+  `;
   res.setHeader("Content-Type", "text/html");
   res.end(html);
 }
@@ -33,6 +60,10 @@ createServer(async (req, res) => {
     const url = new URL(req.url, `http://${req.headers.host}`);
     if (url.pathname === '/client.js') {
       await sendScript(res, './client.js');
+    } else if (url.searchParams.has('jsx')) {
+      url.searchParams.delete('jsx');
+      console.log('send jsx')
+      await sendJSX(res, <Router url={url} />);
     } else {
       await sendHTML(res, <Router url={url} />);
     }

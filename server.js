@@ -21,6 +21,7 @@ async function sendHTML(res, jsx) {
 
 createServer(async (req, res) => {
   try {
+    if(req.url==='/favicon.ico') return
     const url = new URL(req.url, `http://${req.headers.host}`);
     await sendHTML(res, <Router url={url} />);
   } catch (err) {

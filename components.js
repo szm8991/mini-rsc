@@ -46,6 +46,8 @@ export function BlogLayout({ children }) {
         <nav>
           <a href="/">Home</a>
           <hr />
+          <input />
+          <hr />
         </nav>
         <main>{children}</main>
         <Footer author={author} />
@@ -66,3 +68,9 @@ export function Footer({ author }) {
     </footer>
   );
 }
+
+function throwNotFound(cause) {
+    const notFound = new Error('Not found.', { cause });
+    notFound.statusCode = 404;
+    throw notFound;
+  }

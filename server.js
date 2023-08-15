@@ -1,5 +1,6 @@
-import { createServer } from "node:http";
-import sanitizeFilename from "sanitize-filename";
+import { readFile } from "fs/promises";
+import { createServer } from 'node:http';
+import sanitizeFilename from 'sanitize-filename';
 import { renderJSXToHTML } from './compiler.js';
 import { BlogIndexPage, BlogLayout, BlogPostPage } from './components.js';
 function Router({ url }) {
@@ -13,17 +14,28 @@ function Router({ url }) {
   return <BlogLayout>{page}</BlogLayout>;
 }
 
+async function sendScript(res, filename) {
+  const content = await readFile(filename, "utf8");
+  res.setHeader("Content-Type", "text/javascript");
+  res.end(content);
+}
+
 async function sendHTML(res, jsx) {
-  const html = await renderJSXToHTML(jsx);
+  let html = await renderJSXToHTML(jsx);
+  html += `<script type="module" src="/client.js"></script>`;
   res.setHeader("Content-Type", "text/html");
   res.end(html);
 }
 
 createServer(async (req, res) => {
   try {
-    if(req.url==='/favicon.ico') return
+    if (req.url === '/favicon.ico') return;
     const url = new URL(req.url, `http://${req.headers.host}`);
-    await sendHTML(res, <Router url={url} />);
+    if (url.pathname === '/client.js') {
+      await sendScript(res, './client.js');
+    } else {
+      await sendHTML(res, <Router url={url} />);
+    }
   } catch (err) {
     console.error(err);
     res.statusCode = err.statusCode ?? 500;
